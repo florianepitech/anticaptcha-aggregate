@@ -37,7 +37,7 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
     public @Nullable String solve(@NotNull String captchaKey,
                                   @NotNull String captchaUrl,
                                   @NotNull CaptchaType captchaType) {
-        logger.trace("Start solving captcha with anti-captcha.com");
+        logger.debug("Start solving captcha with anti-captcha.com");
         String apiKey = getApiKey();
         if (apiKey == null) {
             logger.warn("No API key found for anti-captcha.com");
@@ -53,13 +53,13 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
             logger.warn("Impossible to start task on anti-captcha.com");
             return (null);
         }
-        logger.trace("Task started on anti-captcha.com with id {}", taskId);
+        logger.debug("Task started on anti-captcha.com with id {}", taskId);
         String solution = getCaptchaSolution(taskId, 1);
         if (solution == null) {
             logger.warn("Impossible to get captcha solution from anti-captcha.com");
             return (solve(captchaKey, captchaUrl, captchaType));
         }
-        logger.trace("Captcha solution found {} on anti-captcha.com with task id {}", solution, taskId);
+        logger.debug("Captcha solution found {} on anti-captcha.com with task id {}", solution, taskId);
         return (solution);
     }
 
@@ -76,7 +76,7 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
      */
     private @Nullable Integer startTask(@NotNull String captchaKey,
                                         @NotNull String captchaUrl) {
-        logger.trace("Start task on anti-captcha.com");
+        logger.debug("Start task on anti-captcha.com");
         JSONObject request = new JSONObject();
         request.put("clientKey", getApiKey());
         request.put("task", new JSONObject()
@@ -94,7 +94,7 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
                         "errorDescription"));
                 return (null);
             }
-            return (responseJson.getInt("taskId"));
+            return responseJson.getInt("taskId");
         } catch (IOException | HttpServerException e) {
             httpClientSession.resetHttpClient();
             logger.error("Error while starting task on anti-captcha.com {}: {}", e.getClass().getSimpleName(), e.getMessage());
@@ -141,6 +141,35 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
             logger.error("Error while getting captcha solution from anti-captcha.com {}", e.getMessage(), e);
             return (null);
         }
+    }
+
+    @Override
+    public @Nullable Float getBalance(@NotNull HttpClientSession httpClientSession) {
+        try {
+            RequestResponse response = httpClientSession.sendPost("https://api.anti-captcha.com/getBalance",
+                    new JSONObject().put("clientKey", getApiKey()),
+                    ContentType.APPLICATION_JSON);
+            JSONObject responseJson = response.toJSONObject();
+            logger.trace("Request response get balance on anti-captcha.com: {}", responseJson);
+            if (responseJson.getInt("errorId") != 0) {
+                logger.warn("Error while getting balance from anti-captcha.com: {}", responseJson.getString(
+                        "errorDescription"));
+                return (null);
+            }
+            return (responseJson.getFloat("balance"));
+        } catch (IOException | HttpServerException e) {
+            httpClientSession.resetHttpClient();
+            logger.error("Error while getting balance from anti-captcha.com {}: {}", e.getClass().getSimpleName(), e.getMessage());
+            return (getBalance(httpClientSession));
+        } catch (HttpClientException e) {
+            logger.error("Error while getting balance from anti-captcha.com {}", e.getMessage(), e);
+            return (null);
+        }
+    }
+
+    @Override
+    public @NotNull String getProviderName() {
+        return ("anti-captcha.com");
     }
 
     /**

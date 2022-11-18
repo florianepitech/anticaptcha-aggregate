@@ -3,13 +3,16 @@ package fr.anticaptcha.aggregate;
 import fr.anticaptcha.aggregate.enums.CaptchaType;
 import fr.anticaptcha.aggregate.provider.AntiCaptchaProvider;
 import fr.anticaptcha.aggregate.provider.anticaptchacom.AntiCaptchaComProvider;
+import net.httpclient.wrapper.session.HttpClientSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AntiCaptchaAggregate {
 
@@ -36,6 +39,19 @@ public class AntiCaptchaAggregate {
                 return (result);
         }
         return (null);
+    }
+
+    public @NotNull Map<String, Float> getBalances() {
+        HttpClientSession httpClientSession = new HttpClientSession();
+        List<AntiCaptchaProvider> providers = getAllProviders();
+        Map<String, Float> balances = new HashMap<>();
+        for (AntiCaptchaProvider provider : providers) {
+            Float balance = provider.getBalance(httpClientSession);
+            balances.put(provider.getProviderName(), balance);
+            if (balance == null)
+                logger.warn("Impossible to get balance for {}", provider.getProviderName());
+        }
+        return (balances);
     }
 
     /*
