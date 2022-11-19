@@ -22,7 +22,10 @@ import static fr.anticaptcha.aggregate.AntiCaptchaAggregate.logger;
  */
 public class AntiCaptchaComProvider implements AntiCaptchaProvider {
 
-    private final int MAX_ATTEMPTS = 100;
+    /**
+     * This number define the number of attempts to get the captcha solution.
+     */
+    private final static int MAX_ATTEMPTS = 100;
 
     @NotNull
     private final HttpClientSession httpClientSession;
@@ -133,9 +136,9 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
                 return (null);
             }
             if (responseJson.getString("status").equals("processing")) {
-                logger.trace("Attempt {}: captcha solution not ready yet on anti-captcha.com with task id {}," +
+                logger.trace("Attempt {}/{}: captcha solution not ready yet on anti-captcha.com with task id {}," +
                                 "waiting {} seconds before retrying...",
-                        attempt, taskId, rateLimiter.getDuration().toSeconds());
+                        attempt, MAX_ATTEMPTS, taskId, rateLimiter.getDuration().toSeconds());
                 return (getCaptchaSolution(taskId, attempt + 1));
             }
             return (responseJson.getJSONObject("solution").getString("gRecaptchaResponse"));
