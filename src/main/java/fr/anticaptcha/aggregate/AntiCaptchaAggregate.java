@@ -41,6 +41,10 @@ public class AntiCaptchaAggregate {
         return (null);
     }
 
+    /**
+     * This method return the balance of all provider available.
+     * @return The balance of all provider available.
+     */
     public @NotNull Map<String, Float> getBalances() {
         HttpClientSession httpClientSession = new HttpClientSession();
         List<AntiCaptchaProvider> providers = getAllProviders();
@@ -58,6 +62,10 @@ public class AntiCaptchaAggregate {
      $      Private methods
      */
 
+    /**
+     * This method return all provider implemented.
+     * @return All provider implemented.
+     */
     private @NotNull List<AntiCaptchaProvider> getAllProviders() {
         List<AntiCaptchaProvider> providers = new ArrayList<>();
         providers.add(new AntiCaptchaComProvider());

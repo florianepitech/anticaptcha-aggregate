@@ -22,6 +22,8 @@ import static fr.anticaptcha.aggregate.AntiCaptchaAggregate.logger;
  */
 public class AntiCaptchaComProvider implements AntiCaptchaProvider {
 
+    private final int MAX_ATTEMPTS = 100;
+
     @NotNull
     private final HttpClientSession httpClientSession;
 
@@ -112,6 +114,10 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
      * @return The captcha solution.
      */
     private @Nullable String getCaptchaSolution(@NotNull Integer taskId, int attempt) {
+        if (attempt > MAX_ATTEMPTS) {
+            logger.warn("Max attempts reached for anti-captcha.com for task id {}", taskId);
+            return (null);
+        }
         JSONObject request = new JSONObject();
         request.put("clientKey", getApiKey());
         request.put("taskId", taskId);
