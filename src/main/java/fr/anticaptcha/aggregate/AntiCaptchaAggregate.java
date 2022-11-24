@@ -23,13 +23,6 @@ public class AntiCaptchaAggregate {
 
     private AntiCaptchaComProvider antiCaptchaComProvider;
 
-    @Getter @NotNull
-    private final List<AntiCaptchaProvider> providers = new ArrayList<>();
-
-    public AntiCaptchaAggregate() {
-
-    }
-
     /**
      * This method solve a captcha with all provider available.
      * @param captchaKey The captcha key of the website.
@@ -64,6 +57,13 @@ public class AntiCaptchaAggregate {
                 logger.warn("Impossible to get balance for {}", provider.getProviderName());
         }
         return (balances);
+    }
+
+    public @NotNull List<AntiCaptchaProvider> getProviders() {
+        List<AntiCaptchaProvider> providers = new ArrayList<>();
+        if (antiCaptchaComProvider != null)
+            providers.add(antiCaptchaComProvider);
+        return (providers);
     }
 
 }
