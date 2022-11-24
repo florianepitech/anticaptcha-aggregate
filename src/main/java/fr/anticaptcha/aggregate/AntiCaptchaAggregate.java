@@ -3,6 +3,8 @@ package fr.anticaptcha.aggregate;
 import fr.anticaptcha.aggregate.enums.CaptchaType;
 import fr.anticaptcha.aggregate.provider.AntiCaptchaProvider;
 import fr.anticaptcha.aggregate.provider.anticaptchacom.AntiCaptchaComProvider;
+import lombok.Builder;
+import lombok.Getter;
 import net.httpclient.wrapper.session.HttpClientSession;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,9 +16,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Builder
 public class AntiCaptchaAggregate {
 
     public static final Logger logger = LogManager.getLogger(AntiCaptchaAggregate.class);
+
+    private AntiCaptchaComProvider antiCaptchaComProvider;
+
+    @Getter @NotNull
+    private final List<AntiCaptchaProvider> providers = new ArrayList<>();
 
     public AntiCaptchaAggregate() {
 
@@ -32,7 +40,7 @@ public class AntiCaptchaAggregate {
     public @Nullable String solve(@NotNull final String captchaKey,
                                   @NotNull final String captchaUrl,
                                   @NotNull final CaptchaType captchaType) {
-        List<AntiCaptchaProvider> providers = getAllProviders();
+        List<AntiCaptchaProvider> providers = getProviders();
         for (AntiCaptchaProvider provider : providers) {
             String result = provider.solve(captchaKey, captchaUrl, captchaType);
             if (result != null)
@@ -47,7 +55,7 @@ public class AntiCaptchaAggregate {
      */
     public @NotNull Map<String, Float> getBalances() {
         HttpClientSession httpClientSession = new HttpClientSession();
-        List<AntiCaptchaProvider> providers = getAllProviders();
+        List<AntiCaptchaProvider> providers = getProviders();
         Map<String, Float> balances = new HashMap<>();
         for (AntiCaptchaProvider provider : providers) {
             Float balance = provider.getBalance(httpClientSession);
@@ -56,20 +64,6 @@ public class AntiCaptchaAggregate {
                 logger.warn("Impossible to get balance for {}", provider.getProviderName());
         }
         return (balances);
-    }
-
-    /*
-     $      Private methods
-     */
-
-    /**
-     * This method return all provider implemented.
-     * @return All provider implemented.
-     */
-    private @NotNull List<AntiCaptchaProvider> getAllProviders() {
-        List<AntiCaptchaProvider> providers = new ArrayList<>();
-        providers.add(new AntiCaptchaComProvider());
-        return (providers);
     }
 
 }

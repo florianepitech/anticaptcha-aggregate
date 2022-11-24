@@ -2,6 +2,8 @@ package fr.anticaptcha.aggregate.provider.anticaptchacom;
 
 import fr.anticaptcha.aggregate.provider.AntiCaptchaProvider;
 import fr.anticaptcha.aggregate.enums.CaptchaType;
+import lombok.Getter;
+import lombok.Setter;
 import net.httpclient.wrapper.exception.HttpClientException;
 import net.httpclient.wrapper.exception.HttpServerException;
 import net.httpclient.wrapper.ratelimiter.RateLimiter;
@@ -33,9 +35,13 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
     @NotNull
     private final RateLimiter rateLimiter;
 
-    public AntiCaptchaComProvider() {
-        httpClientSession = new HttpClientSession();
-        rateLimiter = new RateLimiter(Duration.ofSeconds(2));
+    @Getter @NotNull
+    private final String apiKey;
+
+    public AntiCaptchaComProvider(@NotNull String apiKey) {
+        this.httpClientSession = new HttpClientSession();
+        this.rateLimiter = new RateLimiter(Duration.ofSeconds(2));
+        this.apiKey = apiKey;
     }
 
     @Override
@@ -137,7 +143,7 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
             }
             if (responseJson.getString("status").equals("processing")) {
                 logger.trace("Attempt {}/{}: captcha solution not ready yet on anti-captcha.com with task id {}," +
-                                "waiting {} seconds before retrying...",
+                                " waiting {} seconds before retrying...",
                         attempt, MAX_ATTEMPTS, taskId, rateLimiter.getDuration().toSeconds());
                 return (getCaptchaSolution(taskId, attempt + 1));
             }
@@ -179,15 +185,6 @@ public class AntiCaptchaComProvider implements AntiCaptchaProvider {
     @Override
     public @NotNull String getProviderName() {
         return ("anti-captcha.com");
-    }
-
-    /**
-     * This method return the API key of the provider from
-     * the property <b>anticaptcha.aggregate.provider.anticaptchacom.apikey</b>/
-     * @return The API key of anti-captcha.com.
-     */
-    public @Nullable String getApiKey() {
-        return (System.getProperty("anticaptcha.aggregate.provider.anticaptchacom.apikey"));
     }
 
 }
